@@ -1,0 +1,51 @@
+# Configuration file for Synapse.
+#
+# This is a YAML file: see [1] for a quick introduction. Note in particular
+# that *indentation is important*: all the elements of a list or dictionary
+# should have the same indentation.
+#
+# [1] https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
+#
+# For more information on how to configure Synapse, including a complete accounting of
+# each option, go to docs/usage/configuration/config_documentation.md or
+# https://matrix-org.github.io/synapse/latest/usage/configuration/config_documentation.html
+server_name: "matrix.numbervoid.com"
+pid_file: /data/homeserver.pid
+
+tls_certificate_path: "/data/matrix.numbervoid.com.tls.crt"
+tls_private_key_path: "/data/matrix.numbervoid.com.tls.key"
+
+listeners:
+  - port: 8008
+    tls: true
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+database:
+  name: psycopg2
+  txn_limit: 10000
+  args:
+    user: synapse
+    password: changeme
+    database: synapse
+    host: 127.0.0.1
+    port: 5432
+    cp_min: 5
+    cp_max: 10
+    keepalives_idle: 10
+    keepalives_interval: 10
+    keepalives_count: 3
+log_config: "/data/my.matrix.host.log.config"
+media_store_path: /data/media_store
+registration_shared_secret: "cyWZbpMzHz~b@h2qfAXPzlr.S1p5,pktdEQsfuQLnIrGIRiLtw"
+report_stats: true
+macaroon_secret_key: "yZ@owaXt5xJYWr#Ff09*&rcFJo*8x&4s8SG5ewJ,Qii9ykpri@"
+form_secret: "vGl9B-WlZSmn&+Lo-o~U,@4KP4g8YeeashpAyd9D4B,3J2hv79"
+signing_key_path: "/data/my.matrix.host.signing.key"
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+
+# vim:ft=yaml

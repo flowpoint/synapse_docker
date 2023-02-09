@@ -1,0 +1,72 @@
+## setup a podman synapse server
+
+a matrix.org protocal chatserver setup based on synapse
+
+```
+podman pod create \
+    --publish 8008:8008 \
+    synapse_pod
+```
+
+start the db first
+
+```
+podman run --pod synapse_pod \
+    --name synapse_postgres_db \
+    -e POSTGRES_USER=synapse \
+    -e POSTGRES_PASSWORD=changeme \
+    -e POSTGRES_INITDB_ARGS='--encoding=UTF-8 --lc-collate=C --lc-ctype=C' \
+    -e POSTGRES_DB=synapse \
+    --mount type=volume,src=synapse_postgres_schemas,dst=/var/lib/postgresql/data \
+    docker.io/postgres
+```
+
+
+generate the synapse config:
+```
+podman run -it --rm \
+    --pod synapse_pod \
+    --mount type=volume,src=synapse-data,dst=/data \
+    -e SYNAPSE_SERVER_NAME=matrix.numbervoid.com \
+    -e SYNAPSE_REPORT_STATS=yes \
+    docker.io/matrixdotorg/synapse:latest generate
+```
+
+you can edit it with:
+
+```
+podman unshare
+podman volume mount synapse-data
+```
+
+restart if the server is already running
+
+```
+podman restart synapse
+```
+
+## run server
+
+```
+podman run -d \
+    --pod synapse_pod \
+    --name synapse \
+    --mount type=volume,src=synapse-data,dst=/data \
+    docker.io/matrixdotorg/synapse:latest
+```
+
+
+## generate admin
+#
+```
+podman exec \
+    -it synapse \
+    register_new_matrix_user http://localhost:8448 \
+    -c /data/homeserver.yaml \
+    -a \
+    -u username \
+    -p password \
+    --help
+```
+
+### now just setup a ssl terminating proxy towards the domain:8008
